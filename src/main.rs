@@ -1,12 +1,13 @@
 mod keccak256_hasher;
 
+use std::fmt::{Display, Formatter};
 use keccak256_hasher::Keccak256Hasher;
 use reqwest::header::{HeaderMap, HeaderValue, ACCEPT, CONNECTION, CONTENT_TYPE, USER_AGENT};
 use serde::{Deserialize, Serialize};
 use sparse_merkle_tree::merge::hash_base_node;
 use sparse_merkle_tree::traits::Hasher;
 
-use ethers::utils::keccak256;
+use ethers::utils::{hex, keccak256};
 use sparse_merkle_tree::merge::into_merge_value;
 use sparse_merkle_tree::merge::MergeValue::MergeWithZero;
 use sparse_merkle_tree::merge::{merge, MergeValue};
@@ -118,6 +119,41 @@ fn verify(
 
 }
 
+#[derive(Debug)]
+pub struct MV(MergeValue);
+
+// 让[u8; 32]以hex的方式打印
+impl Display for MV {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self.0 {
+            MergeValue::Value(v) => write!(f, "{}", hex::encode(v.as_slice())),
+            MergeValue::MergeWithZero {
+                base_node,
+                zero_bits,
+                zero_count,
+            } => write!(
+                f,
+                "base_node: {}, zero_bits: {}, zero_count: {}",
+                hex::encode(base_node.as_slice()),
+                hex::encode(zero_bits.as_slice()),
+                zero_count
+            ),
+            MergeValue::ShortCut { key, value, height } => write!(
+                f,
+                "key: {}, value: {}, height: {}",
+                hex::encode(key.as_slice()),
+                hex::encode(value.as_slice()),
+                height
+            ),
+        }
+    }
+}
+
+// 给一个打印MV的例子
+
+
+
+
 #[tokio::main]
 async fn main() -> Result<(), reqwest::Error> {
     let mut tree = update_db(get_k_v());
@@ -125,12 +161,21 @@ async fn main() -> Result<(), reqwest::Error> {
     for i in get_k_v() {
         let proof = tree.merkle_proof(vec![i.0]).unwrap();
         println!("key: {:?}", i.clone().0);
+        // println!("key hex: {:?}", hex::encode(i.clone().0.as_slice()));
         println!("value: {:?}", i.clone().1);
         println!("bitmap: {:?}", proof.leaves_bitmap()[0]);
         println!("siblings: {:?}", proof.merkle_path().clone());
         println!("root: {:?}", root);
-
+        println!("----------hex------------");
+        println!("key hex: {:?}", hex::encode(i.clone().0.as_slice()));
+        println!("bitmap hex: {:?}", hex::encode(proof.leaves_bitmap()[0].as_slice()));
+        for i in proof.merkle_path().clone() {
+            println!("siblings hex: {:}", MV(i));
+        }
+        println!( "root hex: {:?}" , hex::encode(root.as_slice()));
         assert!(verify(i.0, i.1, proof.leaves_bitmap()[0], proof.merkle_path().clone(), root.clone()));
+        println!("--------------------------------------------------------------------------------------------------------------------");
+
     }
     Ok(())
 }
