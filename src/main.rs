@@ -1,11 +1,11 @@
 mod keccak256_hasher;
 
-use std::fmt::{Display, Formatter};
 use keccak256_hasher::Keccak256Hasher;
 use reqwest::header::{HeaderMap, HeaderValue, ACCEPT, CONNECTION, CONTENT_TYPE, USER_AGENT};
 use serde::{Deserialize, Serialize};
 use sparse_merkle_tree::merge::hash_base_node;
 use sparse_merkle_tree::traits::Hasher;
+use std::fmt::{Display, Formatter};
 
 use ethers::utils::{hex, keccak256};
 use sparse_merkle_tree::merge::into_merge_value;
@@ -13,8 +13,8 @@ use sparse_merkle_tree::merge::MergeValue::MergeWithZero;
 use sparse_merkle_tree::merge::{merge, MergeValue};
 use sparse_merkle_tree::traits::StoreReadOps;
 use sparse_merkle_tree::{
-    default_store::DefaultStore, error::Error, traits::Value, BranchKey,
-    BranchNode, MerkleProof, SparseMerkleTree, H256,
+    default_store::DefaultStore, error::Error, traits::Value, BranchKey, BranchNode, MerkleProof,
+    SparseMerkleTree, H256,
 };
 
 // define SMT
@@ -35,13 +35,9 @@ impl Value for Word {
     }
 }
 
-
 fn get_k_v() -> Vec<(H256, Word)> {
     let mut k_v = Vec::new();
-    for (i, word) in "The word"
-        .split_whitespace()
-        .enumerate()
-    {
+    for (i, word) in "The word".split_whitespace().enumerate() {
         let key: H256 = keccak256(i.to_le_bytes()).into();
         let value = Word(word.to_string());
         k_v.push((key, value));
@@ -57,13 +53,7 @@ fn update_db(k_v: Vec<(H256, Word)>) -> SMT {
     tree
 }
 
-fn verify(
-    key: H256,
-    v: Word,
-    leaves_bitmap: H256,
-    siblings: Vec<MergeValue>,
-    root: H256
-) -> bool {
+fn verify(key: H256, v: Word, leaves_bitmap: H256, siblings: Vec<MergeValue>, root: H256) -> bool {
     // 定义初始路径
     let mut current_path = key;
     let mut n = 0;
@@ -116,7 +106,6 @@ fn verify(
     // 循环结束 获得新的root
     let new_root = current_v.hash::<Keccak256Hasher>();
     new_root == root
-
 }
 
 #[derive(Debug)]
@@ -151,9 +140,6 @@ impl Display for MV {
 
 // 给一个打印MV的例子
 
-
-
-
 #[tokio::main]
 async fn main() -> Result<(), reqwest::Error> {
     let mut tree = update_db(get_k_v());
@@ -168,14 +154,24 @@ async fn main() -> Result<(), reqwest::Error> {
         println!("root: {:?}", root);
         println!("----------hex------------");
         println!("key hex: {:?}", hex::encode(i.clone().0.as_slice()));
-        println!("bitmap hex: {:?}", hex::encode(proof.leaves_bitmap()[0].as_slice()));
+        println!(
+            "bitmap hex: {:?}",
+            hex::encode(proof.leaves_bitmap()[0].as_slice())
+        );
+        let mut n = 0;
         for i in proof.merkle_path().clone() {
-            println!("siblings hex: {:}", MV(i));
+            println!("sibling {:?} hex: {:}", n, MV(i));
+            n += 1;
         }
-        println!( "root hex: {:?}" , hex::encode(root.as_slice()));
-        assert!(verify(i.0, i.1, proof.leaves_bitmap()[0], proof.merkle_path().clone(), root.clone()));
+        println!("root hex: {:?}", hex::encode(root.as_slice()));
+        assert!(verify(
+            i.0,
+            i.1,
+            proof.leaves_bitmap()[0],
+            proof.merkle_path().clone(),
+            root.clone()
+        ));
         println!("--------------------------------------------------------------------------------------------------------------------");
-
     }
     Ok(())
 }
