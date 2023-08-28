@@ -1,5 +1,5 @@
 mod keccak256_hasher;
-
+// use tiny_keccak::{Hasher, Keccak};
 use keccak256_hasher::Keccak256Hasher;
 use reqwest::header::{HeaderMap, HeaderValue, ACCEPT, CONNECTION, CONTENT_TYPE, USER_AGENT};
 use serde::{Deserialize, Serialize};
@@ -8,7 +8,7 @@ use sparse_merkle_tree::traits::Hasher;
 use std::fmt::{Display, Formatter};
 
 use ethers::utils::{hex, keccak256};
-use sparse_merkle_tree::merge::into_merge_value;
+// use sparse_merkle_tree::merge::into_merge_value;
 use sparse_merkle_tree::merge::MergeValue::MergeWithZero;
 use sparse_merkle_tree::merge::{merge, MergeValue};
 use sparse_merkle_tree::traits::StoreReadOps;
@@ -19,6 +19,28 @@ use sparse_merkle_tree::{
 
 // define SMT
 type SMT = SparseMerkleTree<Keccak256Hasher, Word, DefaultStore<Word>>;
+
+
+pub fn into_merge_value<H: Hasher + Default>(key: H256, value: H256, height: u8) -> MergeValue {
+    // try keep hash same with MergeWithZero
+    if value.is_zero() || height == 0 {
+        MergeValue::from_h256(value)
+    } else {
+        let base_key = key.parent_path(0);
+        let base_node = hash_base_node::<H>(0, &base_key, &value);
+        let mut zero_bits = key;
+        for i in height..=core::u8::MAX {
+            if key.get_bit(i) {
+                zero_bits.clear_bit(i);
+            }
+        }
+        MergeValue::MergeWithZero {
+            base_node,
+            zero_bits,
+            zero_count: height,
+        }
+    }
+}
 
 // define SMT value
 #[derive(Default, Clone, Debug)]
@@ -58,11 +80,7 @@ fn verify(key: H256, v: Word, leaves_bitmap: H256, siblings: Vec<MergeValue>, ro
     let mut current_path = key;
     let mut n = 0;
     // 初始化节点的MergeValue
-    let mut current_v = MergeValue::ShortCut {
-        key: key,
-        value: keccak256(v.0.as_bytes()).into(),
-        height: 0,
-    };
+    let mut current_v = MergeValue::zero();
 
     // 定义左右节点的MergeValue
     let mut left: MergeValue = MergeValue::zero();
@@ -75,6 +93,11 @@ fn verify(key: H256, v: Word, leaves_bitmap: H256, siblings: Vec<MergeValue>, ro
 
         // 如果有兄弟节点（两个节点都是非零)
         if leaves_bitmap.get_bit(i) {
+            // 如果第一次遇到非零节点 计算当前节点的MergeValue
+            if n == 0 {
+                // key和value都是最开始传进来的值
+                current_v = into_merge_value::<Keccak256Hasher>(key, v.to_h256(), i);
+            }
             if current_path.is_right(i) {
                 left = siblings[n].clone();
                 right = current_v.clone();
@@ -84,17 +107,19 @@ fn verify(key: H256, v: Word, leaves_bitmap: H256, siblings: Vec<MergeValue>, ro
             }
 
             n += 1;
-        }
-        // 如果没有兄弟节点（遇到零的兄弟节点）
-        else {
-            if current_path.is_right(i) {
-                left = MergeValue::zero();
-                right = current_v.clone();
-            } else {
-                left = current_v.clone();
-                right = MergeValue::zero();
+        } else {
+            // 遇到非零节点之后才会执行
+            if n > 0 {
+                if current_path.is_right(i) {
+                    left = MergeValue::zero();
+                    right = current_v.clone();
+                } else {
+                    left = current_v.clone();
+                    right = MergeValue::zero();
+                }
             }
         }
+
 
         // 计算父节点的MergeValue  （高度， 父节点路径， 左节点， 右节点）
         current_v = merge::<Keccak256Hasher>(i, &parent_path, &left, &right);
@@ -126,13 +151,6 @@ impl Display for MV {
                 hex::encode(base_node.as_slice()),
                 hex::encode(zero_bits.as_slice()),
                 zero_count
-            ),
-            MergeValue::ShortCut { key, value, height } => write!(
-                f,
-                "key: {}, value: {}, height: {}",
-                hex::encode(key.as_slice()),
-                hex::encode(value.as_slice()),
-                height
             ),
         }
     }
@@ -172,6 +190,14 @@ async fn main() -> Result<(), reqwest::Error> {
             root.clone()
         ));
         println!("--------------------------------------------------------------------------------------------------------------------");
+
+        use sparse_merkle_tree::traits::Hasher;
+        let mut hasher = Keccak256Hasher::default();
+        hasher.write_byte(8);
+        let f = hasher.finish();
+        println!("f: {:?}", f);
+        println!("f hex: {:?}", hex::encode(f.as_slice()));
+
     }
     Ok(())
 }

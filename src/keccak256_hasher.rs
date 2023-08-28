@@ -15,7 +15,6 @@ impl Hasher for Keccak256Hasher {
     fn write_h256(&mut self, h: &H256) {
         self.0.update(h.as_slice());
     }
-
     fn write_byte(&mut self, b: u8) {
         self.0.update(&[b][..]);
     }
