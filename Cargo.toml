@@ -17,7 +17,11 @@ reqwest = "0.11.18"
 serde_json = "1.0.105"
 serde = "1.0.183"
 sled = "0.34.7"
-sparse-merkle-tree = { version = "0.6.1"}
+sparse-merkle-tree = { git = "https://github.com/YanOctavian/sparse-merkle-tree.git"}
 blake2b-rs = "0.2.0"
 tiny-keccak = "2.0.2"
 hex = "0.4.3"
+off-chain-state = { git = "https://github.com/YanOctavian/submitter.git", branch = "dev"}
+primitives = { git = "https://github.com/YanOctavian/submitter.git", branch = "dev"}
+rocksdb = { package = "ckb-rocksdb", version = "0.19", default-features = false, features = ["snappy", "march-native"] }
+

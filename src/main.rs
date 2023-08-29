@@ -6,7 +6,12 @@ use serde::{Deserialize, Serialize};
 use sparse_merkle_tree::merge::hash_base_node;
 use sparse_merkle_tree::traits::Hasher;
 use std::fmt::{Display, Formatter};
-
+// use ethers::abi::ParamType::Address;
+use ethers::types::U256;
+ use ethers::types::Address;
+ use std::str::FromStr;
+pub use rocksdb::prelude::Open;
+pub use rocksdb::{DBVector, OptimisticTransaction, OptimisticTransactionDB};
 use ethers::utils::{hex, keccak256};
 // use sparse_merkle_tree::merge::into_merge_value;
 use sparse_merkle_tree::merge::MergeValue::MergeWithZero;
@@ -16,9 +21,12 @@ use sparse_merkle_tree::{
     default_store::DefaultStore, error::Error, traits::Value, BranchKey, BranchNode, MerkleProof,
     SparseMerkleTree, H256,
 };
+use off_chain_state::{SmtValue, State};
+use primitives::{types::ProfitStateData, func::chain_token_address_convert_to_h256};
+use primitives::traits::StataTrait;
 
 // define SMT
-type SMT = SparseMerkleTree<Keccak256Hasher, Word, DefaultStore<Word>>;
+type SMT = SparseMerkleTree<Keccak256Hasher, SmtValue<ProfitStateData>, DefaultStore<SmtValue<ProfitStateData>>>;
 
 
 pub fn into_merge_value<H: Hasher + Default>(key: H256, value: H256, height: u8) -> MergeValue {
@@ -42,40 +50,44 @@ pub fn into_merge_value<H: Hasher + Default>(key: H256, value: H256, height: u8)
     }
 }
 
-// define SMT value
-#[derive(Default, Clone, Debug)]
-pub struct Word(String);
-impl Value for Word {
-    fn to_h256(&self) -> H256 {
-        if self.0.is_empty() {
-            return H256::zero();
-        }
-        keccak256(self.0.as_bytes()).into()
-    }
-    fn zero() -> Self {
-        Default::default()
-    }
-}
 
-fn get_k_v() -> Vec<(H256, Word)> {
-    let mut k_v = Vec::new();
-    for (i, word) in "The word".split_whitespace().enumerate() {
-        let key: H256 = keccak256(i.to_le_bytes()).into();
-        let value = Word(word.to_string());
-        k_v.push((key, value));
+fn get_k_v() -> Vec<(H256, SmtValue<ProfitStateData>)> {
+
+    let mut k_v:  Vec<(H256, SmtValue<ProfitStateData>)> = Vec::new();
+    let token_id = Address::from_str("0x0000000000000000000000000000000000000021").unwrap();
+    let mut chain_id = 100u64;
+    let user: Address = Address::from_str("0x0000000000000000000000000000000000000022").unwrap();
+    for i in 0..2 {
+        let profit_state_data = ProfitStateData {
+            token: token_id,
+            token_chain_id: chain_id,
+            balance: U256::from(100),
+            debt: U256::from(80),
+        };
+        let path = chain_token_address_convert_to_h256(chain_id, token_id, user);
+        let value = SmtValue::new(profit_state_data).unwrap();
+        println!("value: {:?}", value);
+        println!("path: {:?}", path);
+        k_v.push((path, value));
+        chain_id += 1;
     }
     k_v
 }
 
-fn update_db(k_v: Vec<(H256, Word)>) -> SMT {
-    let mut tree = SMT::default();
+fn new_state() -> State<'static, Keccak256Hasher, ProfitStateData> {
+    let db = OptimisticTransactionDB::open_default("./db1").unwrap();
+    let prefix = b"test";
+    State::new(prefix, db)
+}
+fn update_db(k_v: Vec<(H256, SmtValue<ProfitStateData>)>) -> State<'static, Keccak256Hasher, ProfitStateData> {
+    let mut tree = new_state();
     for (key, value) in k_v {
-        tree.update(key, value).expect("update");
+        tree.try_update_all(vec![(key, value.get_data().clone())]).unwrap();
     }
     tree
 }
 
-fn verify(key: H256, v: Word, leaves_bitmap: H256, siblings: Vec<MergeValue>, root: H256) -> bool {
+fn verify(key: H256, v: SmtValue<ProfitStateData>, leaves_bitmap: H256, siblings: Vec<MergeValue>, root: H256) -> bool {
     // 定义初始路径
     let mut current_path = key;
     let mut n = 0;
@@ -97,6 +109,7 @@ fn verify(key: H256, v: Word, leaves_bitmap: H256, siblings: Vec<MergeValue>, ro
             if n == 0 {
                 // key和value都是最开始传进来的值
                 current_v = into_merge_value::<Keccak256Hasher>(key, v.to_h256(), i);
+                println!("第一次生成节点是： {:?}", current_v);
             }
             if current_path.is_right(i) {
                 left = siblings[n].clone();
@@ -161,32 +174,36 @@ impl Display for MV {
 #[tokio::main]
 async fn main() -> Result<(), reqwest::Error> {
     let mut tree = update_db(get_k_v());
-    let root = tree.root();
+    let root = tree.try_get_root().unwrap();
     for i in get_k_v() {
-        let proof = tree.merkle_proof(vec![i.0]).unwrap();
+        let proof = tree.try_get_merkle_proof_1(i.0).unwrap();
+        // let proof = tree.merkle_proof(vec![i.0]).unwrap();
         println!("key: {:?}", i.clone().0);
         // println!("key hex: {:?}", hex::encode(i.clone().0.as_slice()));
         println!("value: {:?}", i.clone().1);
-        println!("bitmap: {:?}", proof.leaves_bitmap()[0]);
-        println!("siblings: {:?}", proof.merkle_path().clone());
+        let n_v = tree.try_get(i.0).unwrap();
+        // assert_eq!(i.clone().1, n_v.unwrap());
+        println!("解析数据正确");
+        println!("bitmap: {:?}", proof.0);
+        println!("siblings: {:?}", proof.1);
         println!("root: {:?}", root);
         println!("----------hex------------");
         println!("key hex: {:?}", hex::encode(i.clone().0.as_slice()));
         println!(
             "bitmap hex: {:?}",
-            hex::encode(proof.leaves_bitmap()[0].as_slice())
+            hex::encode(proof.0.as_slice())
         );
         let mut n = 0;
-        for i in proof.merkle_path().clone() {
-            println!("sibling {:?} hex: {:}", n, MV(i));
+        for i in &proof.1 {
+            println!("sibling {:?} hex: {:}", n, MV(i.clone()));
             n += 1;
         }
         println!("root hex: {:?}", hex::encode(root.as_slice()));
         assert!(verify(
             i.0,
             i.1,
-            proof.leaves_bitmap()[0],
-            proof.merkle_path().clone(),
+            proof.0,
+            proof.1,
             root.clone()
         ));
         println!("--------------------------------------------------------------------------------------------------------------------");
