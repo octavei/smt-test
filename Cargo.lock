@@ -2518,7 +2518,7 @@ dependencies = [
 [[package]]
 name = "off-chain-state"
 version = "0.1.0"
-source = "git+https://github.com/YanOctavian/submitter.git?branch=dev#1117c40bd62e50d8d36fbf3735931f427f821d2d"
+source = "git+https://github.com/YanOctavian/submitter.git?branch=dev#14b47cd551a27094233805456584dd719e1beaa0"
 dependencies = [
  "bincode",
  "blake2b-rs",
@@ -2962,7 +2962,7 @@ dependencies = [
 [[package]]
 name = "primitives"
 version = "0.1.0"
-source = "git+https://github.com/YanOctavian/submitter.git?branch=dev#1117c40bd62e50d8d36fbf3735931f427f821d2d"
+source = "git+https://github.com/YanOctavian/submitter.git?branch=dev#14b47cd551a27094233805456584dd719e1beaa0"
 dependencies = [
  "async-trait",
  "bincode",
@@ -2970,6 +2970,7 @@ dependencies = [
  "blake2b-rs",
  "ckb-rocksdb",
  "ethers",
+ "hex",
  "jsonrpsee",
  "serde",
  "serde_json",
