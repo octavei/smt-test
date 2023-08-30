@@ -66,8 +66,6 @@ fn get_k_v() -> Vec<(H256, SmtValue<ProfitStateData>)> {
         };
         let path = chain_token_address_convert_to_h256(chain_id, token_id, user);
         let value = SmtValue::new(profit_state_data).unwrap();
-        println!("value: {:?}", value);
-        println!("path: {:?}", path);
         k_v.push((path, value));
         chain_id += 1;
     }
@@ -109,7 +107,6 @@ fn verify(key: H256, v: SmtValue<ProfitStateData>, leaves_bitmap: H256, siblings
             if n == 0 {
                 // key和value都是最开始传进来的值
                 current_v = into_merge_value::<Keccak256Hasher>(key, v.to_h256(), i);
-                println!("第一次生成节点是： {:?}", current_v);
             }
             if current_path.is_right(i) {
                 left = siblings[n].clone();
@@ -178,17 +175,19 @@ async fn main() -> Result<(), reqwest::Error> {
     for i in get_k_v() {
         let proof = tree.try_get_merkle_proof_1(i.0).unwrap();
         // let proof = tree.merkle_proof(vec![i.0]).unwrap();
-        println!("key: {:?}", i.clone().0);
+        println!("path: {:?}", i.clone().0);
         // println!("key hex: {:?}", hex::encode(i.clone().0.as_slice()));
-        println!("value: {:?}", i.clone().1);
+        println!("value: {:?}", i.clone().1.get_data());
+        let hash = i.clone().1.to_h256();
+        println!("value: hash: {:?}", hash);
+        println!("value hash hex: {:?}", hex::encode(hash.as_slice()));
         let n_v = tree.try_get(i.0).unwrap();
         // assert_eq!(i.clone().1, n_v.unwrap());
-        println!("解析数据正确");
         println!("bitmap: {:?}", proof.0);
         println!("siblings: {:?}", proof.1);
         println!("root: {:?}", root);
         println!("----------hex------------");
-        println!("key hex: {:?}", hex::encode(i.clone().0.as_slice()));
+        println!("path hex: {:?}", hex::encode(i.clone().0.as_slice()));
         println!(
             "bitmap hex: {:?}",
             hex::encode(proof.0.as_slice())
@@ -212,8 +211,8 @@ async fn main() -> Result<(), reqwest::Error> {
         let mut hasher = Keccak256Hasher::default();
         hasher.write_byte(8);
         let f = hasher.finish();
-        println!("f: {:?}", f);
-        println!("f hex: {:?}", hex::encode(f.as_slice()));
+        // println!("f: {:?}", f);
+        // println!("f hex: {:?}", hex::encode(f.as_slice()));
 
     }
     Ok(())
