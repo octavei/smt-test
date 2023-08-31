@@ -1,4 +1,6 @@
 mod keccak256_hasher;
+mod test;
+
 // use tiny_keccak::{Hasher, Keccak};
 use keccak256_hasher::Keccak256Hasher;
 use reqwest::header::{HeaderMap, HeaderValue, ACCEPT, CONNECTION, CONTENT_TYPE, USER_AGENT};
@@ -57,7 +59,7 @@ fn get_k_v() -> Vec<(H256, SmtValue<ProfitStateData>)> {
     let token_id = Address::from_str("0x0000000000000000000000000000000000000021").unwrap();
     let mut chain_id = 100u64;
     let user: Address = Address::from_str("0x0000000000000000000000000000000000000022").unwrap();
-    for i in 0..2 {
+    for i in 0..1 {
         let profit_state_data = ProfitStateData {
             token: token_id,
             token_chain_id: chain_id,
@@ -65,6 +67,7 @@ fn get_k_v() -> Vec<(H256, SmtValue<ProfitStateData>)> {
             debt: U256::from(80),
         };
         let path = chain_token_address_convert_to_h256(chain_id, token_id, user);
+        println!("path raw  chain_id: {:?}, token_id: {:?}, user:{:?}", chain_id, token_id, user);
         let value = SmtValue::new(profit_state_data).unwrap();
         k_v.push((path, value));
         chain_id += 1;
@@ -180,7 +183,6 @@ async fn main() -> Result<(), reqwest::Error> {
         println!("value: {:?}", i.clone().1.get_data());
         let hash = i.clone().1.to_h256();
         println!("value: hash: {:?}", hash);
-        println!("value hash hex: {:?}", hex::encode(hash.as_slice()));
         let n_v = tree.try_get(i.0).unwrap();
         // assert_eq!(i.clone().1, n_v.unwrap());
         println!("bitmap: {:?}", proof.0);
@@ -192,6 +194,7 @@ async fn main() -> Result<(), reqwest::Error> {
             "bitmap hex: {:?}",
             hex::encode(proof.0.as_slice())
         );
+        println!("value hash hex: {:?}", hex::encode(hash.as_slice()));
         let mut n = 0;
         for i in &proof.1 {
             println!("sibling {:?} hex: {:}", n, MV(i.clone()));
