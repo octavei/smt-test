@@ -178,23 +178,23 @@ async fn main() -> Result<(), reqwest::Error> {
     for i in get_k_v() {
         let proof = tree.try_get_merkle_proof_1(i.0).unwrap();
         // let proof = tree.merkle_proof(vec![i.0]).unwrap();
-        println!("path: {:?}", i.clone().0);
+        println!("path hash: {:?}", i.clone().0);
         // println!("key hex: {:?}", hex::encode(i.clone().0.as_slice()));
-        println!("value: {:?}", i.clone().1.get_data());
+        println!("value raw: {:?}", i.clone().1.get_data());
         let hash = i.clone().1.to_h256();
-        println!("value: hash: {:?}", hash);
+        println!("value hash: {:?}", hash);
         let n_v = tree.try_get(i.0).unwrap();
         // assert_eq!(i.clone().1, n_v.unwrap());
         println!("bitmap: {:?}", proof.0);
         println!("siblings: {:?}", proof.1);
         println!("root: {:?}", root);
         println!("----------hex------------");
-        println!("path hex: {:?}", hex::encode(i.clone().0.as_slice()));
+        println!("path hash hex: {:?}", hex::encode(i.clone().0.as_slice()));
+        println!("value hash hex: {:?}", hex::encode(hash.as_slice()));
         println!(
             "bitmap hex: {:?}",
             hex::encode(proof.0.as_slice())
         );
-        println!("value hash hex: {:?}", hex::encode(hash.as_slice()));
         let mut n = 0;
         for i in &proof.1 {
             println!("sibling {:?} hex: {:}", n, MV(i.clone()));
