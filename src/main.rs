@@ -26,6 +26,7 @@ use sparse_merkle_tree::{
 use off_chain_state::{SmtValue, State};
 use primitives::{types::ProfitStateData, func::chain_token_address_convert_to_h256};
 use primitives::traits::StataTrait;
+use utils::SMTBitMap;
 
 // define SMT
 type SMT = SparseMerkleTree<Keccak256Hasher, SmtValue<ProfitStateData>, DefaultStore<SmtValue<ProfitStateData>>>;
@@ -59,7 +60,7 @@ fn get_k_v() -> Vec<(H256, SmtValue<ProfitStateData>)> {
     let token_id = Address::from_str("0x0000000000000000000000000000000000000021").unwrap();
     let mut chain_id = 100u64;
     let user: Address = Address::from_str("0x0000000000000000000000000000000000000022").unwrap();
-    for i in 0..1 {
+    for i in 0..8 {
         let profit_state_data = ProfitStateData {
             token: token_id,
             token_chain_id: chain_id,
@@ -178,7 +179,7 @@ async fn main() -> Result<(), reqwest::Error> {
     for i in get_k_v() {
         let proof = tree.try_get_merkle_proof_1(i.0).unwrap();
         // let proof = tree.merkle_proof(vec![i.0]).unwrap();
-        println!("path hash: {:?}", i.clone().0);
+        println!("path: {:?}", i.clone().0);
         // println!("key hex: {:?}", hex::encode(i.clone().0.as_slice()));
         println!("value raw: {:?}", i.clone().1.get_data());
         let hash = i.clone().1.to_h256();
@@ -186,14 +187,22 @@ async fn main() -> Result<(), reqwest::Error> {
         let n_v = tree.try_get(i.0).unwrap();
         // assert_eq!(i.clone().1, n_v.unwrap());
         println!("bitmap: {:?}", proof.0);
+        let mut r_bitmap: SMTBitMap = proof.0.clone().into();
+        r_bitmap.reverse();
+        println!("reverse bitmap: {:?}", r_bitmap);
         println!("siblings: {:?}", proof.1);
         println!("root: {:?}", root);
         println!("----------hex------------");
-        println!("path hash hex: {:?}", hex::encode(i.clone().0.as_slice()));
+        let path_hex = hex::encode(i.clone().0.as_slice());
+        println!("path hash hex: {:?}", path_hex);
         println!("value hash hex: {:?}", hex::encode(hash.as_slice()));
         println!(
             "bitmap hex: {:?}",
             hex::encode(proof.0.as_slice())
+        );
+        println!(
+            "reverse bitmap hex: {:?}",
+            hex::encode(r_bitmap.0.as_slice())
         );
         let mut n = 0;
         for i in &proof.1 {
@@ -209,14 +218,6 @@ async fn main() -> Result<(), reqwest::Error> {
             root.clone()
         ));
         println!("--------------------------------------------------------------------------------------------------------------------");
-
-        use sparse_merkle_tree::traits::Hasher;
-        let mut hasher = Keccak256Hasher::default();
-        hasher.write_byte(8);
-        let f = hasher.finish();
-        // println!("f: {:?}", f);
-        // println!("f hex: {:?}", hex::encode(f.as_slice()));
-
     }
     Ok(())
 }

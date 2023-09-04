@@ -1,5 +1,5 @@
 [package]
-name = "haha"
+name = "smt-test"
 version = "0.1.0"
 edition = "2021"
 
@@ -22,6 +22,7 @@ blake2b-rs = "0.2.0"
 tiny-keccak = "2.0.2"
 hex = "0.4.3"
 off-chain-state = { git = "https://github.com/YanOctavian/submitter.git", branch = "dev"}
+utils = { git = "https://github.com/YanOctavian/submitter.git", branch = "dev"}
 primitives = { git = "https://github.com/YanOctavian/submitter.git", branch = "dev"}
 rocksdb = { package = "ckb-rocksdb", version = "0.19", default-features = false, features = ["snappy", "march-native"] }
 
