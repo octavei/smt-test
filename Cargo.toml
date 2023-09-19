@@ -9,10 +9,10 @@ edition = "2021"
 sha2 = "0.9.8"
 anyhow = "1.0.72"
 clap = "4.3.11"
-ethers-contract-abigen = "2.0.7"
+ethers-contract-abigen = {git = "https://github.com/gakonst/ethers-rs.git"}
 tokio = { version="1.29.1", features=["full"] }
 primitive-types = "0.10.0"
-ethers = { version = "2.0.8" }
+ethers = {git = "https://github.com/gakonst/ethers-rs.git"}
 reqwest = "0.11.18"
 serde_json = "1.0.105"
 serde = "1.0.183"
@@ -21,8 +21,8 @@ sparse-merkle-tree = { git = "https://github.com/YanOctavian/sparse-merkle-tree.
 blake2b-rs = "0.2.0"
 tiny-keccak = "2.0.2"
 hex = "0.4.3"
-off-chain-state = { git = "https://github.com/YanOctavian/submitter.git", branch = "dev"}
-utils = { git = "https://github.com/YanOctavian/submitter.git", branch = "dev"}
-primitives = { git = "https://github.com/YanOctavian/submitter.git", branch = "dev"}
+off-chain-state = { git = "https://github.com/YanOctavian/submitter.git", branch = "test"}
+utils = { git = "https://github.com/YanOctavian/submitter.git", branch = "test"}
+primitives = { git = "https://github.com/YanOctavian/submitter.git", branch = "test"}
 rocksdb = { package = "ckb-rocksdb", version = "0.19", default-features = false, features = ["snappy", "march-native"] }
 
