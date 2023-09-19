@@ -3804,13 +3804,16 @@ dependencies = [
 [[package]]
 name = "sparse-merkle-tree"
 version = "0.6.1"
-source = "git+https://github.com/YanOctavian/sparse-merkle-tree.git#32f151361290787fbe5009ea21c42d50a8d073b0"
+source = "git+https://github.com/YanOctavian/sparse-merkle-tree.git#66f35a038ae9c35298e5eb567b31f2a883b5a951"
 dependencies = [
  "blake2b-rs",
  "cc",
  "cfg-if",
+ "ethers",
+ "hex",
  "serde",
  "serde_with",
+ "tiny-keccak",
 ]
 
 [[package]]
