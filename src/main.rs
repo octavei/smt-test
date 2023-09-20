@@ -40,17 +40,18 @@ pub fn into_merge_value<H: Hasher + Default>(key: H256, value: H256, height: u8)
     if value.is_zero() {
         MergeValue::from_h256(value)
     } else {
+        //
         let base_key = key.parent_path(0);
         let base_node = hash_base_node::<H>(0, &base_key, &value);
         let mut zero_bits = key;
-        for i in height..=core::u8::MAX {
-            if key.get_bit(i) {
-                zero_bits.clear_bit(i);
-            }
-        }
+        // for i in height..=core::u8::MAX {
+        //     if key.get_bit(i) {
+        //         zero_bits.clear_bit(i);
+        //     }
+        // }
         MergeValue::MergeWithZero {
             base_node,
-            zero_bits,
+            zero_bits, // value hash
             zero_count: height,
         }
     }
@@ -215,59 +216,61 @@ impl Display for MV {
 
 #[tokio::main]
 async fn main() -> Result<(), reqwest::Error> {
-    let mut tree = update_db(get_k_v());
-    let root = tree.try_get_root().unwrap();
-    println!("原来的root: {:?}", root);
-    for i in get_k_v() {
-        let proof = tree.try_get_merkle_proof_1(i.0).unwrap();
-        // let proof = tree.merkle_proof(vec![i.0]).unwrap();
-        println!("path: {:?}", i.clone().0);
-        // println!("key hex: {:?}", hex::encode(i.clone().0.as_slice()));
-        println!("value raw: {:?}", i.clone().1.get_data());
-        let hash = i.clone().1.to_h256();
-        println!("value hash: {:?}", hash);
-        let n_v = tree.try_get(i.0).unwrap();
-        // assert_eq!(i.clone().1, n_v.unwrap());
-        println!("bitmap: {:?}", proof.0);
-        // let mut r_bitmap: SMTBitMap = proof.0.clone().into();
-        // r_bitmap.reverse();
-        // println!("reverse bitmap: {:?}", r_bitmap);
-        println!("siblings: {:?}", proof.1);
-        println!("root: {:?}", root);
-        println!("----------hex------------");
-        let path_hex = hex::encode(i.clone().0.as_slice());
-        println!("path hash hex: {:?}", path_hex);
-        println!("value hash hex: {:?}", hex::encode(hash.as_slice()));
-        println!("bitmap hex: {:?}", hex::encode(proof.0.as_slice()));
-        // println!(
-        //     "reverse bitmap hex: {:?}",
-        //     hex::encode(r_bitmap.0.as_slice())
-        // );
-        let mut n = 0;
-        for i in &proof.1 {
-            println!("sibling {:?} hex: {:}", n, MV(i.clone()));
-            n += 1;
-        }
-        println!("root hex: {:?}", hex::encode(root.as_slice()));
-        let res = verify(i.0, i.1, proof.0, proof.1, root.clone());
-        assert_eq!(res, true);
-        println!("--------------------------------------------------------------------------------------------------------------------");
-    }
+    // let mut tree = update_db(get_k_v());
+    // let root = tree.try_get_root().unwrap();
+    // println!("原来的root: {:?}", root);
+    // for i in get_k_v() {
+    //     let proof = tree.try_get_merkle_proof_1(i.0).unwrap();
+    //     // let proof = tree.merkle_proof(vec![i.0]).unwrap();
+    //     println!("path: {:?}", i.clone().0);
+    //     // println!("key hex: {:?}", hex::encode(i.clone().0.as_slice()));
+    //     println!("value raw: {:?}", i.clone().1.get_data());
+    //     let hash = i.clone().1.to_h256();
+    //     println!("value hash: {:?}", hash);
+    //     let n_v = tree.try_get(i.0).unwrap();
+    //     // assert_eq!(i.clone().1, n_v.unwrap());
+    //     println!("bitmap: {:?}", proof.0);
+    //     // let mut r_bitmap: SMTBitMap = proof.0.clone().into();
+    //     // r_bitmap.reverse();
+    //     // println!("reverse bitmap: {:?}", r_bitmap);
+    //     println!("siblings: {:?}", proof.1);
+    //     println!("root: {:?}", root);
+    //     println!("----------hex------------");
+    //     let path_hex = hex::encode(i.clone().0.as_slice());
+    //     println!("path hash hex: {:?}", path_hex);
+    //     println!("value hash hex: {:?}", hex::encode(hash.as_slice()));
+    //     println!("bitmap hex: {:?}", hex::encode(proof.0.as_slice()));
+    //     // println!(
+    //     //     "reverse bitmap hex: {:?}",
+    //     //     hex::encode(r_bitmap.0.as_slice())
+    //     // );
+    //     let mut n = 0;
+    //     for i in &proof.1 {
+    //         println!("sibling {:?} hex: {:}", n, MV(i.clone()));
+    //         n += 1;
+    //     }
+    //     println!("root hex: {:?}", hex::encode(root.as_slice()));
+    //     let res = verify(i.0, i.1, proof.0, proof.1, root.clone());
+    //     assert_eq!(res, true);
+    //     println!("--------------------------------------------------------------------------------------------------------------------");
+    // }
 
-    // let merge_zero_test: Vec<MergeValue> = serde_json::from_str(r#"[{"MergeWithZero":{"base_node":"6e52ca0838fa384a33fab3312877a5dd3af78facebf198f372da4301b6e47ce6","zero_bits":"d24c2a1d931f6b4444508e36f871ffcffc79712a63d8bbe04bf5417c5b000000","zero_count":235}},{"MergeWithZero":{"base_node":"0eec86eab2036d6155e8c6caf131196de53def9020b6367f9a4430aa85c233fc","zero_bits":"109771f05661cbe26c966a7af53579484baa691b032e8e16b734e53886400000","zero_count":236}},{"Value":"137a24269a9e8cb4a6af729db7e152bb4c0489c557f8867675b71b6dc370f6e6"},{"MergeWithZero":{"base_node":"6e642bc4e46eb9c958e548a30e32f1c7bf697ca2f7e0441bf9d618c061d0d7b2","zero_bits":"0000000000000000000000000000000000000000000000000000000000040000","zero_count":1}},{"Value":"1d841b03fded33fd3c3ebf26e43600ac6fc9ab5e7bbc9ee0b25a4f380db4a25a"},{"Value":"fb4f171f944da0f84361ce2e63301b778105960b991aa3ce242254d8ce98e911"},{"Value":"2e0e846bcca791734daf6f40cc4bdc07fbbacf436b17b42012b92e82511b79e1"},{"Value":"97b558ba0d0c9812605ac3b10f4f5fa0936524f3aba9df294e9e055e97083c84"},{"Value":"58bb8636498a6f553705f612f115fd3143b61e20cbb06005fe7db1a0d82be383"},{"Value":"631c80b53a5969f4ec347b1bd867b127d8dbf606b084f7e1a9b4ee8483db115c"},{"Value":"41f34cb8f7cddf4253ee1633c387b646742b1d66b2621dd3167dc9e699354c0a"},{"Value":"0e3b9e8970440f4a53455a17dc1032cda2b63840bd2ffeaa74d7224f256540ac"},{"Value":"428d327d3bd703576b3101123d3f42f584d5b642001e97dba48fb98793911565"},{"Value":"1417b46f8e7435132c7e3039d8d10563002dce67cc4a9503106572992317bbf5"},{"Value":"b176fb5027e9231c5d61b14467a951e921dc7aca192a97bb5ca0ee79fe39851e"},{"Value":"dd5331d1238d85a7028f300fc1011fb3576e8ea54e05e48081337845b3afda00"},{"Value":"d60f9807fdd18fcdd962f2470e1e1189e85f219120de72037bcd87bedc326b76"},{"Value":"b3ae46581ff7e9934650f3c4b3fa5ee408a47a86472a154818124675dfb6577c"},{"Value":"bda503ae7d1e0a35da118e4733392cfa1af4cf58c7a4aafa75154374181746f0"},{"Value":"523c060aaf7d4ec5c50bb0c74591482b37d16c985c514c9e57023017e1efaee9"},{"Value":"72b40309b386d6ad03b200f53588dd218f0d5cd4a928e2b442b51e6186f1f9c4"}]"#).unwrap();
-    // println!("merge_zero_test: {:?}", merge_zero_test);
-    //
-    // let path: [u8; 32] = hex::decode("9a05d89903c318fd4a9bf0ec37a2341918b5d0783eab9743d65d5ef98e43efc2").unwrap().try_into().unwrap();
+    let merge_zero_test: Vec<MergeValue> = serde_json::from_str(r#"[{"MergeWithZero":{"base_node":"6e52ca0838fa384a33fab3312877a5dd3af78facebf198f372da4301b6e47ce6","zero_bits":"d24c2a1d931f6b4444508e36f871ffcffc79712a63d8bbe04bf5417c5b000000","zero_count":235}},{"MergeWithZero":{"base_node":"0eec86eab2036d6155e8c6caf131196de53def9020b6367f9a4430aa85c233fc","zero_bits":"109771f05661cbe26c966a7af53579484baa691b032e8e16b734e53886400000","zero_count":236}},{"Value":"137a24269a9e8cb4a6af729db7e152bb4c0489c557f8867675b71b6dc370f6e6"},{"MergeWithZero":{"base_node":"6e642bc4e46eb9c958e548a30e32f1c7bf697ca2f7e0441bf9d618c061d0d7b2","zero_bits":"0000000000000000000000000000000000000000000000000000000000040000","zero_count":1}},{"Value":"1d841b03fded33fd3c3ebf26e43600ac6fc9ab5e7bbc9ee0b25a4f380db4a25a"},{"Value":"fb4f171f944da0f84361ce2e63301b778105960b991aa3ce242254d8ce98e911"},{"Value":"2e0e846bcca791734daf6f40cc4bdc07fbbacf436b17b42012b92e82511b79e1"},{"Value":"97b558ba0d0c9812605ac3b10f4f5fa0936524f3aba9df294e9e055e97083c84"},{"Value":"58bb8636498a6f553705f612f115fd3143b61e20cbb06005fe7db1a0d82be383"},{"Value":"631c80b53a5969f4ec347b1bd867b127d8dbf606b084f7e1a9b4ee8483db115c"},{"Value":"41f34cb8f7cddf4253ee1633c387b646742b1d66b2621dd3167dc9e699354c0a"},{"Value":"0e3b9e8970440f4a53455a17dc1032cda2b63840bd2ffeaa74d7224f256540ac"},{"Value":"428d327d3bd703576b3101123d3f42f584d5b642001e97dba48fb98793911565"},{"Value":"1417b46f8e7435132c7e3039d8d10563002dce67cc4a9503106572992317bbf5"},{"Value":"b176fb5027e9231c5d61b14467a951e921dc7aca192a97bb5ca0ee79fe39851e"},{"Value":"dd5331d1238d85a7028f300fc1011fb3576e8ea54e05e48081337845b3afda00"},{"Value":"d60f9807fdd18fcdd962f2470e1e1189e85f219120de72037bcd87bedc326b76"},{"Value":"b3ae46581ff7e9934650f3c4b3fa5ee408a47a86472a154818124675dfb6577c"},{"Value":"bda503ae7d1e0a35da118e4733392cfa1af4cf58c7a4aafa75154374181746f0"},{"Value":"523c060aaf7d4ec5c50bb0c74591482b37d16c985c514c9e57023017e1efaee9"},{"Value":"72b40309b386d6ad03b200f53588dd218f0d5cd4a928e2b442b51e6186f1f9c4"}]"#).unwrap();
+    println!("merge_zero_test: {:?}", merge_zero_test);
+
+    let merge_zero_test: Vec<MergeValue> = vec![];
+    let path: [u8; 32] = hex::decode("7065dce049d0d83fbc8aff2851be7f1c572b04fbbafffcebd21c736dfe3fa8f6").unwrap().try_into().unwrap();
+    let leave_bitmap: [u8; 32] = [0; 32];
     // let leave_bitmap: [u8; 32] = hex::decode("00000000000000000000000000000000000000000000000000000000001fffff").unwrap().try_into().unwrap();
-    // let smt_value = SmtValue::new(ProfitStateData{
-    //     token: Address::from_str("0x29b6a77911c1ce3b3849f28721c65dada015c768").unwrap(),
-    //     token_chain_id: 5,
-    //     balance: U256::from_dec_str("100000000").unwrap(),
-    //     debt: Default::default(),
-    // }).unwrap();
-    // let root: [u8; 32] = hex::decode("2d6801361f94f27ef375c7dff73998e1d95922facdee2ef3202e4d7237b9e24b").unwrap().try_into().unwrap();
-    // let res = verify(path.into(), smt_value, leave_bitmap.into(), merge_zero_test, root.into());
-    // assert_eq!(res, true);
+    let smt_value = SmtValue::new(ProfitStateData{
+        token: Address::from_str("0x0000000000000000000000000000000000000022").unwrap(),
+        token_chain_id: 1,
+        balance: U256::from_dec_str("200").unwrap(),
+        debt: U256::from_dec_str("200").unwrap(),
+    }).unwrap();
+    let root: [u8; 32] = hex::decode("4c86a4ac2f7c63680fab382c48d65eb8b25e7231bcc55021364820f9d3b1f1d5").unwrap().try_into().unwrap();
+    let res = verify(path.into(), smt_value, leave_bitmap.into(), merge_zero_test, root.into());
+    assert_eq!(res, true);
     Ok(())
 }
 
