@@ -36,24 +36,29 @@ type SMT = SparseMerkleTree<
 
 pub fn into_merge_value<H: Hasher + Default>(key: H256, value: H256, height: u8) -> MergeValue {
     // try keep hash same with MergeWithZero
-    // fixme 删掉了 || height == 0
-    if value.is_zero() {
+    if value.is_zero() || height == 0 {
         MergeValue::from_h256(value)
     } else {
         //
         let base_key = key.parent_path(0);
         let base_node = hash_base_node::<H>(0, &base_key, &value);
         let mut zero_bits = key;
-        // for i in height..=core::u8::MAX {
-        //     if key.get_bit(i) {
-        //         zero_bits.clear_bit(i);
-        //     }
-        // }
-        MergeValue::MergeWithZero {
+        for i in height..=core::u8::MAX {
+            if key.get_bit(255) {
+                zero_bits.clear_bit(255);
+            }
+        }
+
+        let res = MergeValue::MergeWithZero {
             base_node,
             zero_bits, // value hash
-            zero_count: height,
-        }
+            zero_count: height, // 255  0
+        };
+
+        println!("--------------------------------------");
+        println!("{:}", MV(res.clone()));
+        println!("--------------------------------------");
+        res
     }
 }
 
@@ -163,10 +168,6 @@ fn verify(
             }
         }
 
-        if n == 0 {
-            current_v = into_merge_value::<Keccak256Hasher>(key, v.to_h256(), 0);
-        }
-
         // 计算父节点的MergeValue  （高度， 父节点路径， 左节点， 右节点）
         current_v = merge::<Keccak256Hasher>(i, &parent_path, &left, &right);
 
@@ -182,7 +183,7 @@ fn verify(
         }
     }
 
-    println!("currenct_v hahahahah: {:?}", current_v);
+    println!("currenct_v hahahahah: {:}", MV(current_v.clone()));
 
     // 循环结束 获得新的root
     let new_root = current_v.hash::<Keccak256Hasher>();
@@ -255,11 +256,12 @@ async fn main() -> Result<(), reqwest::Error> {
     //     println!("--------------------------------------------------------------------------------------------------------------------");
     // }
 
-    let merge_zero_test: Vec<MergeValue> = serde_json::from_str(r#"[{"MergeWithZero":{"base_node":"6e52ca0838fa384a33fab3312877a5dd3af78facebf198f372da4301b6e47ce6","zero_bits":"d24c2a1d931f6b4444508e36f871ffcffc79712a63d8bbe04bf5417c5b000000","zero_count":235}},{"MergeWithZero":{"base_node":"0eec86eab2036d6155e8c6caf131196de53def9020b6367f9a4430aa85c233fc","zero_bits":"109771f05661cbe26c966a7af53579484baa691b032e8e16b734e53886400000","zero_count":236}},{"Value":"137a24269a9e8cb4a6af729db7e152bb4c0489c557f8867675b71b6dc370f6e6"},{"MergeWithZero":{"base_node":"6e642bc4e46eb9c958e548a30e32f1c7bf697ca2f7e0441bf9d618c061d0d7b2","zero_bits":"0000000000000000000000000000000000000000000000000000000000040000","zero_count":1}},{"Value":"1d841b03fded33fd3c3ebf26e43600ac6fc9ab5e7bbc9ee0b25a4f380db4a25a"},{"Value":"fb4f171f944da0f84361ce2e63301b778105960b991aa3ce242254d8ce98e911"},{"Value":"2e0e846bcca791734daf6f40cc4bdc07fbbacf436b17b42012b92e82511b79e1"},{"Value":"97b558ba0d0c9812605ac3b10f4f5fa0936524f3aba9df294e9e055e97083c84"},{"Value":"58bb8636498a6f553705f612f115fd3143b61e20cbb06005fe7db1a0d82be383"},{"Value":"631c80b53a5969f4ec347b1bd867b127d8dbf606b084f7e1a9b4ee8483db115c"},{"Value":"41f34cb8f7cddf4253ee1633c387b646742b1d66b2621dd3167dc9e699354c0a"},{"Value":"0e3b9e8970440f4a53455a17dc1032cda2b63840bd2ffeaa74d7224f256540ac"},{"Value":"428d327d3bd703576b3101123d3f42f584d5b642001e97dba48fb98793911565"},{"Value":"1417b46f8e7435132c7e3039d8d10563002dce67cc4a9503106572992317bbf5"},{"Value":"b176fb5027e9231c5d61b14467a951e921dc7aca192a97bb5ca0ee79fe39851e"},{"Value":"dd5331d1238d85a7028f300fc1011fb3576e8ea54e05e48081337845b3afda00"},{"Value":"d60f9807fdd18fcdd962f2470e1e1189e85f219120de72037bcd87bedc326b76"},{"Value":"b3ae46581ff7e9934650f3c4b3fa5ee408a47a86472a154818124675dfb6577c"},{"Value":"bda503ae7d1e0a35da118e4733392cfa1af4cf58c7a4aafa75154374181746f0"},{"Value":"523c060aaf7d4ec5c50bb0c74591482b37d16c985c514c9e57023017e1efaee9"},{"Value":"72b40309b386d6ad03b200f53588dd218f0d5cd4a928e2b442b51e6186f1f9c4"}]"#).unwrap();
-    println!("merge_zero_test: {:?}", merge_zero_test);
+    // let merge_zero_test: Vec<MergeValue> = serde_json::from_str(r#"[{"MergeWithZero":{"base_node":"6e52ca0838fa384a33fab3312877a5dd3af78facebf198f372da4301b6e47ce6","zero_bits":"d24c2a1d931f6b4444508e36f871ffcffc79712a63d8bbe04bf5417c5b000000","zero_count":235}},{"MergeWithZero":{"base_node":"0eec86eab2036d6155e8c6caf131196de53def9020b6367f9a4430aa85c233fc","zero_bits":"109771f05661cbe26c966a7af53579484baa691b032e8e16b734e53886400000","zero_count":236}},{"Value":"137a24269a9e8cb4a6af729db7e152bb4c0489c557f8867675b71b6dc370f6e6"},{"MergeWithZero":{"base_node":"6e642bc4e46eb9c958e548a30e32f1c7bf697ca2f7e0441bf9d618c061d0d7b2","zero_bits":"0000000000000000000000000000000000000000000000000000000000040000","zero_count":1}},{"Value":"1d841b03fded33fd3c3ebf26e43600ac6fc9ab5e7bbc9ee0b25a4f380db4a25a"},{"Value":"fb4f171f944da0f84361ce2e63301b778105960b991aa3ce242254d8ce98e911"},{"Value":"2e0e846bcca791734daf6f40cc4bdc07fbbacf436b17b42012b92e82511b79e1"},{"Value":"97b558ba0d0c9812605ac3b10f4f5fa0936524f3aba9df294e9e055e97083c84"},{"Value":"58bb8636498a6f553705f612f115fd3143b61e20cbb06005fe7db1a0d82be383"},{"Value":"631c80b53a5969f4ec347b1bd867b127d8dbf606b084f7e1a9b4ee8483db115c"},{"Value":"41f34cb8f7cddf4253ee1633c387b646742b1d66b2621dd3167dc9e699354c0a"},{"Value":"0e3b9e8970440f4a53455a17dc1032cda2b63840bd2ffeaa74d7224f256540ac"},{"Value":"428d327d3bd703576b3101123d3f42f584d5b642001e97dba48fb98793911565"},{"Value":"1417b46f8e7435132c7e3039d8d10563002dce67cc4a9503106572992317bbf5"},{"Value":"b176fb5027e9231c5d61b14467a951e921dc7aca192a97bb5ca0ee79fe39851e"},{"Value":"dd5331d1238d85a7028f300fc1011fb3576e8ea54e05e48081337845b3afda00"},{"Value":"d60f9807fdd18fcdd962f2470e1e1189e85f219120de72037bcd87bedc326b76"},{"Value":"b3ae46581ff7e9934650f3c4b3fa5ee408a47a86472a154818124675dfb6577c"},{"Value":"bda503ae7d1e0a35da118e4733392cfa1af4cf58c7a4aafa75154374181746f0"},{"Value":"523c060aaf7d4ec5c50bb0c74591482b37d16c985c514c9e57023017e1efaee9"},{"Value":"72b40309b386d6ad03b200f53588dd218f0d5cd4a928e2b442b51e6186f1f9c4"}]"#).unwrap();
+    // println!("merge_zero_test: {:?}", merge_zero_test);
 
     let merge_zero_test: Vec<MergeValue> = vec![];
-    let path: [u8; 32] = hex::decode("7065dce049d0d83fbc8aff2851be7f1c572b04fbbafffcebd21c736dfe3fa8f6").unwrap().try_into().unwrap();
+    let path: [u8; 32] = hex::decode("14953aa729bdd6f80d68dba16f957f915f406553365662cfac4e07b9c3de4b4a").unwrap().try_into().unwrap();
+    println!("path: {:?}", path);
     let leave_bitmap: [u8; 32] = [0; 32];
     // let leave_bitmap: [u8; 32] = hex::decode("00000000000000000000000000000000000000000000000000000000001fffff").unwrap().try_into().unwrap();
     let smt_value = SmtValue::new(ProfitStateData{
@@ -268,7 +270,8 @@ async fn main() -> Result<(), reqwest::Error> {
         balance: U256::from_dec_str("200").unwrap(),
         debt: U256::from_dec_str("200").unwrap(),
     }).unwrap();
-    let root: [u8; 32] = hex::decode("4c86a4ac2f7c63680fab382c48d65eb8b25e7231bcc55021364820f9d3b1f1d5").unwrap().try_into().unwrap();
+    // println("smt_value: {:?}", )
+    let root: [u8; 32] = hex::decode("85bcb37624ff5f2c7706f9e56dd23dba5f5faf27083fdd5f5387fff4fbcc3932").unwrap().try_into().unwrap();
     let res = verify(path.into(), smt_value, leave_bitmap.into(), merge_zero_test, root.into());
     assert_eq!(res, true);
     Ok(())
