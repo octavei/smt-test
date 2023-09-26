@@ -2723,7 +2723,7 @@ dependencies = [
 [[package]]
 name = "off-chain-state"
 version = "0.1.0"
-source = "git+https://github.com/YanOctavian/submitter.git?branch=test#d382ddd86c67b5224b0f758b42ee58968221756f"
+source = "git+https://github.com/YanOctavian/submitter.git?branch=test#1a2adfbf93335d7980b9aec9250cb12922ec6008"
 dependencies = [
  "bincode",
  "blake2b-rs",
@@ -3167,7 +3167,7 @@ dependencies = [
 [[package]]
 name = "primitives"
 version = "0.1.0"
-source = "git+https://github.com/YanOctavian/submitter.git?branch=test#d382ddd86c67b5224b0f758b42ee58968221756f"
+source = "git+https://github.com/YanOctavian/submitter.git?branch=test#1a2adfbf93335d7980b9aec9250cb12922ec6008"
 dependencies = [
  "async-trait",
  "bincode",
@@ -4561,7 +4561,7 @@ checksum = "711b9620af191e0cdc7468a8d14e709c3dcdb115b36f838e601583af800a370a"
 [[package]]
 name = "utils"
 version = "0.1.0"
-source = "git+https://github.com/YanOctavian/submitter.git?branch=test#d382ddd86c67b5224b0f758b42ee58968221756f"
+source = "git+https://github.com/YanOctavian/submitter.git?branch=test#1a2adfbf93335d7980b9aec9250cb12922ec6008"
 dependencies = [
  "hex",
  "off-chain-state",
