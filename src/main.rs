@@ -36,6 +36,7 @@ type SMT = SparseMerkleTree<
 
 pub fn into_merge_value<H: Hasher + Default>(key: H256, value: H256, height: u8) -> MergeValue {
     // try keep hash same with MergeWithZero
+    println!("key: {:?}", hex::encode(key.as_slice()));
     if value.is_zero() || height == 0 {
         MergeValue::from_h256(value)
     } else {
@@ -187,7 +188,7 @@ fn verify(
 
     // 循环结束 获得新的root
     let new_root = current_v.hash::<Keccak256Hasher>();
-    println!("new_root: {:?}", new_root);
+    println!("new_root: {:?}", hex::encode(new_root.as_slice()));
     new_root == root
 }
 
@@ -260,18 +261,18 @@ async fn main() -> Result<(), reqwest::Error> {
     // println!("merge_zero_test: {:?}", merge_zero_test);
 
     let merge_zero_test: Vec<MergeValue> = vec![];
-    let path: [u8; 32] = hex::decode("14953aa729bdd6f80d68dba16f957f915f406553365662cfac4e07b9c3de4b4a").unwrap().try_into().unwrap();
+    let path: [u8; 32] = hex::decode("e6b1581ba814e39a205f346a02122e1f6ba4b814380217133998d339b5b1f2cf").unwrap().try_into().unwrap();
     println!("path: {:?}", path);
     let leave_bitmap: [u8; 32] = [0; 32];
     // let leave_bitmap: [u8; 32] = hex::decode("00000000000000000000000000000000000000000000000000000000001fffff").unwrap().try_into().unwrap();
     let smt_value = SmtValue::new(ProfitStateData{
-        token: Address::from_str("0x0000000000000000000000000000000000000022").unwrap(),
+        token: Address::from_str("0x0000000000000000000000000000000000000000").unwrap(),
         token_chain_id: 1,
-        balance: U256::from_dec_str("200").unwrap(),
-        debt: U256::from_dec_str("200").unwrap(),
+        balance: U256::from_dec_str("20000000000000000").unwrap(),
+        debt: U256::from_dec_str("0").unwrap(),
     }).unwrap();
     // println("smt_value: {:?}", )
-    let root: [u8; 32] = hex::decode("85bcb37624ff5f2c7706f9e56dd23dba5f5faf27083fdd5f5387fff4fbcc3932").unwrap().try_into().unwrap();
+    let root: [u8; 32] = hex::decode("3ddc69b153a2b46761bf45c5dc332d735ea7768eae22e01bcf786decbafd0c67").unwrap().try_into().unwrap();
     let res = verify(path.into(), smt_value, leave_bitmap.into(), merge_zero_test, root.into());
     assert_eq!(res, true);
     Ok(())
