@@ -367,7 +367,7 @@ version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f5353f36341f7451062466f0b755b96ac3a9547e4d7f6b70d603fc721a7d7896"
 dependencies = [
- "sha2 0.10.7",
+ "sha2 0.10.8",
  "tinyvec",
 ]
 
@@ -598,7 +598,7 @@ dependencies = [
  "hmac",
  "k256",
  "serde",
- "sha2 0.10.7",
+ "sha2 0.10.8",
  "thiserror",
 ]
 
@@ -614,7 +614,7 @@ dependencies = [
  "once_cell",
  "pbkdf2 0.12.2",
  "rand",
- "sha2 0.10.7",
+ "sha2 0.10.8",
  "thiserror",
 ]
 
@@ -633,7 +633,7 @@ dependencies = [
  "ripemd",
  "serde",
  "serde_derive",
- "sha2 0.10.7",
+ "sha2 0.10.8",
  "sha3",
  "thiserror",
 ]
@@ -1048,7 +1048,7 @@ dependencies = [
  "scrypt",
  "serde",
  "serde_json",
- "sha2 0.10.7",
+ "sha2 0.10.8",
  "sha3",
  "thiserror",
  "uuid",
@@ -1236,7 +1236,7 @@ dependencies = [
  "serde",
  "serde_json",
  "syn 2.0.37",
- "toml 0.8.0",
+ "toml 0.8.1",
  "walkdir",
 ]
 
@@ -1500,7 +1500,7 @@ dependencies = [
  "eth-keystore",
  "ethers-core 2.0.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand",
- "sha2 0.10.7",
+ "sha2 0.10.8",
  "thiserror",
  "tracing",
 ]
@@ -1518,7 +1518,7 @@ dependencies = [
  "eth-keystore",
  "ethers-core 2.0.10 (git+https://github.com/gakonst/ethers-rs.git)",
  "rand",
- "sha2 0.10.7",
+ "sha2 0.10.8",
  "thiserror",
  "tracing",
 ]
@@ -2468,7 +2468,7 @@ dependencies = [
  "ecdsa",
  "elliptic-curve",
  "once_cell",
- "sha2 0.10.7",
+ "sha2 0.10.8",
  "signature",
 ]
 
@@ -2723,7 +2723,7 @@ dependencies = [
 [[package]]
 name = "off-chain-state"
 version = "0.1.0"
-source = "git+https://github.com/YanOctavian/submitter.git?branch=test#1a2adfbf93335d7980b9aec9250cb12922ec6008"
+source = "git+https://github.com/YanOctavian/submitter.git?branch=test#5e95ed2adce1e7e167fc7d9dff29f00fc7dec7a0"
 dependencies = [
  "bincode",
  "blake2b-rs",
@@ -2964,7 +2964,7 @@ dependencies = [
  "digest 0.10.7",
  "hmac",
  "password-hash",
- "sha2 0.10.7",
+ "sha2 0.10.8",
 ]
 
 [[package]]
@@ -3167,7 +3167,7 @@ dependencies = [
 [[package]]
 name = "primitives"
 version = "0.1.0"
-source = "git+https://github.com/YanOctavian/submitter.git?branch=test#1a2adfbf93335d7980b9aec9250cb12922ec6008"
+source = "git+https://github.com/YanOctavian/submitter.git?branch=test#5e95ed2adce1e7e167fc7d9dff29f00fc7dec7a0"
 dependencies = [
  "async-trait",
  "bincode",
@@ -3641,7 +3641,7 @@ dependencies = [
  "hmac",
  "pbkdf2 0.11.0",
  "salsa20",
- "sha2 0.10.7",
+ "sha2 0.10.8",
 ]
 
 [[package]]
@@ -3832,9 +3832,9 @@ dependencies = [
 
 [[package]]
 name = "sha2"
-version = "0.10.7"
+version = "0.10.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "479fb9d862239e610720565ca91403019f2f00410f1864c5aa7479b950a76ed8"
+checksum = "793db75ad2bcafc3ffa7c68b215fee268f537982cd901d132f89c6343f3a3dc8"
 dependencies = [
  "cfg-if",
  "cpufeatures",
@@ -4013,7 +4013,7 @@ dependencies = [
 [[package]]
 name = "sparse-merkle-tree"
 version = "0.6.1"
-source = "git+https://github.com/YanOctavian/sparse-merkle-tree.git#15771c1dd501c6c55ee73699fc3e2ce348ca0b90"
+source = "git+https://github.com/YanOctavian/sparse-merkle-tree.git#fcdddb417c1c8242dda21268002c98e091e141d2"
 dependencies = [
  "blake2b-rs",
  "cc",
@@ -4108,7 +4108,7 @@ dependencies = [
  "semver",
  "serde",
  "serde_json",
- "sha2 0.10.7",
+ "sha2 0.10.8",
  "thiserror",
  "url",
  "zip",
@@ -4168,18 +4168,18 @@ dependencies = [
 
 [[package]]
 name = "thiserror"
-version = "1.0.48"
+version = "1.0.49"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9d6d7a740b8a666a7e828dd00da9c0dc290dff53154ea77ac109281de90589b7"
+checksum = "1177e8c6d7ede7afde3585fd2513e611227efd6481bd78d2e82ba1ce16557ed4"
 dependencies = [
  "thiserror-impl",
 ]
 
 [[package]]
 name = "thiserror-impl"
-version = "1.0.48"
+version = "1.0.49"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "49922ecae66cc8a249b77e68d1d0623c1b2c514f0060c27cdc68bd62a1219d35"
+checksum = "10712f02019e9288794769fba95cd6847df9874d49d871d062172f9dd41bc4cc"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -4343,14 +4343,14 @@ dependencies = [
 
 [[package]]
 name = "toml"
-version = "0.8.0"
+version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c226a7bba6d859b63c92c4b4fe69c5b6b72d0cb897dbc8e6012298e6154cb56e"
+checksum = "1bc1433177506450fe920e46a4f9812d0c211f5dd556da10e731a0a3dfa151f0"
 dependencies = [
  "serde",
  "serde_spanned",
  "toml_datetime",
- "toml_edit 0.20.0",
+ "toml_edit 0.20.1",
 ]
 
 [[package]]
@@ -4377,9 +4377,9 @@ dependencies = [
 
 [[package]]
 name = "toml_edit"
-version = "0.20.0"
+version = "0.20.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8ff63e60a958cefbb518ae1fd6566af80d9d4be430a33f3723dfc47d1d411d95"
+checksum = "ca676d9ba1a322c1b64eb8045a5ec5c0cfb0c9d08e15e9ff622589ad5221c8fe"
 dependencies = [
  "indexmap 2.0.0",
  "serde",
@@ -4561,7 +4561,7 @@ checksum = "711b9620af191e0cdc7468a8d14e709c3dcdb115b36f838e601583af800a370a"
 [[package]]
 name = "utils"
 version = "0.1.0"
-source = "git+https://github.com/YanOctavian/submitter.git?branch=test#1a2adfbf93335d7980b9aec9250cb12922ec6008"
+source = "git+https://github.com/YanOctavian/submitter.git?branch=test#5e95ed2adce1e7e167fc7d9dff29f00fc7dec7a0"
 dependencies = [
  "hex",
  "off-chain-state",

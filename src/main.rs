@@ -86,7 +86,7 @@ fn get_k_v() -> Vec<(H256, SmtValue<ProfitStateData>)> {
     let token_id = Address::from_str("0x0000000000000000000000000000000000000021").unwrap();
     let mut chain_id = 100u64;
     let user: Address = Address::from_str("0x0000000000000000000000000000000000000022").unwrap();
-    for i in 0..100 {
+    for i in 0..1 {
         let profit_state_data = ProfitStateData {
             token: token_id,
             token_chain_id: i,
